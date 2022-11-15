@@ -19,7 +19,7 @@ async function generateCertificates() {
   fs.writeFileSync(PUBLIC_KEY, cert);
 }
 
-async function runProxy() {
+async function runProxy(search) {
   const server = mockttp.getLocal({
     https: {
       keyPath: PRIVATE_KEY,
@@ -27,9 +27,37 @@ async function runProxy() {
     },
   });
 
+  const requests = {};
+
   server
     .forAnyRequest()
-    .thenPassThrough();
+    .thenPassThrough({
+      beforeRequest: (request) => {
+        requests[request.id] = request.url;
+        request
+          .body
+          .getText()
+          .then((text) => {
+            if (text.includes(search)) {
+              console.log(`[REQ]: ${request.url}`);
+            }
+          });
+      },
+      beforeResponse: (response) => {
+        if (!search) {
+          return;
+        }
+
+        response
+          .body
+          .getText()
+          .then((text) => {
+            if (text.includes(search)) {
+              console.log(`[RES]: ${requests[response.id]}`);
+            }
+          });
+      },
+    });
 
   await server.start(parseInt(process.env.PORT, 10));
   console.log(`Server running on port ${server.port}`);
@@ -45,8 +73,14 @@ const { argv } = yargs
   }).command({
     command: 'proxy',
     describe: 'Run MITM proxy',
-    handler() {
-      runProxy();
+    builder: {
+      search: {
+        describe: 'Search pattern in response body',
+        type: 'string',
+      },
+    },
+    handler({ search }) {
+      runProxy(search);
     },
   }).strict();
 
