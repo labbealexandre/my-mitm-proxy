@@ -2,13 +2,20 @@
   "name": "my-proxy",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "proxy.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "mockttp": "^3.6.0"
+    "dotenv": "^16.0.3",
+    "mockttp": "^3.6.0",
+    "yargs": "^17.6.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.27.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.26.0"
   }
 }
